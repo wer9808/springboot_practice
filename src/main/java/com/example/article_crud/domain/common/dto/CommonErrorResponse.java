@@ -1,6 +1,6 @@
-package com.example.article_crud.dtos;
+package com.example.article_crud.domain.common.dto;
 
-import com.example.article_crud.CommonErrorCode;
+import com.example.article_crud.domain.common.CommonErrorCode;
 
 public record CommonErrorResponse(
         String code,

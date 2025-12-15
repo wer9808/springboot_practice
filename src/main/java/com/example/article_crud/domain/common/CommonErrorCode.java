@@ -1,7 +1,6 @@
-package com.example.article_crud;
+package com.example.article_crud.domain.common;
 
 import lombok.Getter;
-import org.springframework.http.HttpStatus;
 
 public enum CommonErrorCode {
 
@@ -18,7 +17,9 @@ public enum CommonErrorCode {
     PERMISSION_ACCESS_DENIED(403, "PERMISSION_ACCESS_DENIED", "Access Denied"),
 
     // Article Error
-    ARTICLE_NOT_FOUND(404, "ARTICLE_NOT_FOUND", "Article not found")
+    ARTICLE_NOT_FOUND(404, "ARTICLE_NOT_FOUND", "Article not found"),
+    ARTICLE_NO_TITLE(400, "ARTICLE_NO_TITLE", "Title is required"),
+    ARTICLE_NO_CONTENT(400, "ARTICLE_NO_CONTENT", "Content is required")
     ;
 
     @Getter

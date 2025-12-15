@@ -1,7 +1,8 @@
 package com.example.article_crud;
 
-import com.example.article_crud.dtos.CommonErrorResponse;
-import com.example.article_crud.exceptions.BusinessException;
+import com.example.article_crud.domain.common.dto.CommonErrorResponse;
+import com.example.article_crud.domain.common.CommonErrorCode;
+import com.example.article_crud.domain.common.exception.BusinessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

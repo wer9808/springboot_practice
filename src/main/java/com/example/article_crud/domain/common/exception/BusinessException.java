@@ -1,6 +1,6 @@
-package com.example.article_crud.exceptions;
+package com.example.article_crud.domain.common.exception;
 
-import com.example.article_crud.CommonErrorCode;
+import com.example.article_crud.domain.common.CommonErrorCode;
 import lombok.Getter;
 
 public class BusinessException extends RuntimeException {
