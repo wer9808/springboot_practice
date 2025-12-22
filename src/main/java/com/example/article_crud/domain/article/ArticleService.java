@@ -1,17 +1,14 @@
 package com.example.article_crud.domain.article;
 
-import com.example.article_crud.domain.common.CommonErrorCode;
+import com.example.article_crud.common.exception.ApiErrorCode;
 import com.example.article_crud.domain.article.dto.ArticleResponse;
 import com.example.article_crud.domain.article.dto.CreateArticleRequest;
-import com.example.article_crud.domain.article.dto.DeleteArticleRequest;
 import com.example.article_crud.domain.article.dto.UpdateArticleRequest;
-import com.example.article_crud.domain.common.exception.BusinessException;
+import com.example.article_crud.common.exception.service.BusinessException;
+import com.example.article_crud.domain.user.dto.CurrentUserDto;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,7 +22,7 @@ public class ArticleService {
 
     private void checkArticleUpdatePermission(UUID userId, Article article) throws BusinessException {
         if (!article.getAuthorId().equals(userId)) {
-            throw new BusinessException(CommonErrorCode.PERMISSION_ACCESS_DENIED);
+            throw new BusinessException(ApiErrorCode.PERMISSION_ACCESS_DENIED);
         }
     }
 
@@ -40,15 +37,16 @@ public class ArticleService {
     public ArticleResponse findArticle(Long articleId) throws BusinessException {
         Article article = this.articleRepository
                 .findById(articleId)
-                .orElseThrow(() -> new BusinessException(CommonErrorCode.ARTICLE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ApiErrorCode.ARTICLE_NOT_FOUND));
         return ArticleResponse.from(article);
     }
 
     @Transactional
     public ArticleResponse createArticle(
-            CreateArticleRequest request
+            CreateArticleRequest request,
+            CurrentUserDto currentUserDto
     ) throws BusinessException {
-        Article article = Article.of(request.userId(), request.title(), request.content());
+        Article article = Article.of(currentUserDto.id(), request.title(), request.content());
         this.articleRepository.save(article);
         return ArticleResponse.from(article);
     }
@@ -56,12 +54,13 @@ public class ArticleService {
     @Transactional
     public ArticleResponse updateArticle(
             Long articleId,
-            UpdateArticleRequest request
+            UpdateArticleRequest request,
+            CurrentUserDto currentUserDto
     ) throws BusinessException {
         Article article = this.articleRepository
                 .findById(articleId)
-                .orElseThrow(() -> new BusinessException(CommonErrorCode.ARTICLE_NOT_FOUND));
-        checkArticleUpdatePermission(request.userId(), article);
+                .orElseThrow(() -> new BusinessException(ApiErrorCode.ARTICLE_NOT_FOUND));
+        checkArticleUpdatePermission(currentUserDto.id(), article);
         article.changeTitle(request.title());
         article.changeContent(request.content());
 
@@ -71,13 +70,13 @@ public class ArticleService {
     @Transactional
     public void removeArticle(
             Long articleId,
-            DeleteArticleRequest request
+            CurrentUserDto currentUserDto
     ) throws BusinessException {
         Article article = this.articleRepository
                 .findById(articleId)
-                .orElseThrow(() -> new BusinessException(CommonErrorCode.ARTICLE_NOT_FOUND));
-        checkArticleUpdatePermission(request.userId(), article);
-        this.articleRepository.delete(article);
+                .orElseThrow(() -> new BusinessException(ApiErrorCode.ARTICLE_NOT_FOUND));
+        checkArticleUpdatePermission(currentUserDto.id(), article);
+        article.changeStatus(ArticleStatus.INACTIVE);
     }
 
 }

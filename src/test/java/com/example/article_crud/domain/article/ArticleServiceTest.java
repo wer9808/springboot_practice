@@ -2,10 +2,9 @@ package com.example.article_crud.domain.article;
 
 import com.example.article_crud.domain.article.dto.ArticleResponse;
 import com.example.article_crud.domain.article.dto.CreateArticleRequest;
-import com.example.article_crud.domain.article.dto.DeleteArticleRequest;
 import com.example.article_crud.domain.article.dto.UpdateArticleRequest;
-import com.example.article_crud.domain.common.CommonErrorCode;
-import com.example.article_crud.domain.common.exception.BusinessException;
+import com.example.article_crud.common.exception.ApiErrorCode;
+import com.example.article_crud.common.exception.service.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -82,7 +81,7 @@ class ArticleServiceTest {
 
             // when & then
             BusinessException exception = assertThrows(BusinessException.class, () -> articleService.findArticle(articleId));
-            assertEquals(CommonErrorCode.ARTICLE_NOT_FOUND, exception.getErrorCode());
+            assertEquals(ApiErrorCode.ARTICLE_NOT_FOUND, exception.getErrorCode());
         }
     }
 
@@ -95,12 +94,12 @@ class ArticleServiceTest {
         void success() {
             // given
             UUID userId = UUID.randomUUID();
-            CreateArticleRequest request = new CreateArticleRequest(userId, "title", "content");
-            Article article = Article.of(request.userId(), request.title(), request.content());
+            CreateArticleRequest request = new CreateArticleRequest("title", "content");
+            Article article = Article.of(userId, request.title(), request.content());
             given(articleRepository.save(any(Article.class))).willReturn(article);
 
             // when
-            ArticleResponse response = articleService.createArticle(request);
+            ArticleResponse response = articleService.createArticle(request, userId);
 
             // then
             assertNotNull(response);
@@ -118,12 +117,12 @@ class ArticleServiceTest {
             // given
             Long articleId = 1L;
             UUID userId = UUID.randomUUID();
-            UpdateArticleRequest request = new UpdateArticleRequest(userId, "new title", "new content");
+            UpdateArticleRequest request = new UpdateArticleRequest("new title", "new content");
             Article article = Article.of(userId, "old title", "old content");
             given(articleRepository.findById(articleId)).willReturn(Optional.of(article));
 
             // when
-            ArticleResponse response = articleService.updateArticle(articleId, request);
+            ArticleResponse response = articleService.updateArticle(articleId, request, userId);
 
             // then
             assertNotNull(response);
@@ -137,12 +136,12 @@ class ArticleServiceTest {
             // given
             Long articleId = 1L;
             UUID userId = UUID.randomUUID();
-            UpdateArticleRequest request = new UpdateArticleRequest(userId, "new title", "new content");
+            UpdateArticleRequest request = new UpdateArticleRequest("new title", "new content");
             given(articleRepository.findById(articleId)).willReturn(Optional.empty());
 
             // when & then
-            BusinessException exception = assertThrows(BusinessException.class, () -> articleService.updateArticle(articleId, request));
-            assertEquals(CommonErrorCode.ARTICLE_NOT_FOUND, exception.getErrorCode());
+            BusinessException exception = assertThrows(BusinessException.class, () -> articleService.updateArticle(articleId, request, userId));
+            assertEquals(ApiErrorCode.ARTICLE_NOT_FOUND, exception.getErrorCode());
         }
 
         @Test
@@ -152,13 +151,13 @@ class ArticleServiceTest {
             Long articleId = 1L;
             UUID ownerId = UUID.randomUUID();
             UUID requesterId = UUID.randomUUID();
-            UpdateArticleRequest request = new UpdateArticleRequest(requesterId, "new title", "new content");
+            UpdateArticleRequest request = new UpdateArticleRequest("new title", "new content");
             Article article = Article.of(ownerId, "old title", "old content");
             given(articleRepository.findById(articleId)).willReturn(Optional.of(article));
 
             // when & then
-            BusinessException exception = assertThrows(BusinessException.class, () -> articleService.updateArticle(articleId, request));
-            assertEquals(CommonErrorCode.PERMISSION_ACCESS_DENIED, exception.getErrorCode());
+            BusinessException exception = assertThrows(BusinessException.class, () -> articleService.updateArticle(articleId, request, requesterId));
+            assertEquals(ApiErrorCode.PERMISSION_ACCESS_DENIED, exception.getErrorCode());
         }
     }
 
@@ -171,12 +170,11 @@ class ArticleServiceTest {
             // given
             Long articleId = 1L;
             UUID userId = UUID.randomUUID();
-            DeleteArticleRequest request = new DeleteArticleRequest(userId);
             Article article = Article.of(userId, "title", "content");
             given(articleRepository.findById(articleId)).willReturn(Optional.of(article));
 
             // when
-            assertDoesNotThrow(() -> articleService.removeArticle(articleId, request));
+            assertDoesNotThrow(() -> articleService.removeArticle(articleId, userId));
 
             // then
             verify(articleRepository, times(1)).delete(article);
@@ -188,12 +186,11 @@ class ArticleServiceTest {
             // given
             Long articleId = 1L;
             UUID userId = UUID.randomUUID();
-            DeleteArticleRequest request = new DeleteArticleRequest(userId);
             given(articleRepository.findById(articleId)).willReturn(Optional.empty());
 
             // when & then
-            BusinessException exception = assertThrows(BusinessException.class, () -> articleService.removeArticle(articleId, request));
-            assertEquals(CommonErrorCode.ARTICLE_NOT_FOUND, exception.getErrorCode());
+            BusinessException exception = assertThrows(BusinessException.class, () -> articleService.removeArticle(articleId, userId));
+            assertEquals(ApiErrorCode.ARTICLE_NOT_FOUND, exception.getErrorCode());
         }
 
         @Test
@@ -203,13 +200,12 @@ class ArticleServiceTest {
             Long articleId = 1L;
             UUID ownerId = UUID.randomUUID();
             UUID requesterId = UUID.randomUUID();
-            DeleteArticleRequest request = new DeleteArticleRequest(requesterId);
             Article article = Article.of(ownerId, "title", "content");
             given(articleRepository.findById(articleId)).willReturn(Optional.of(article));
 
             // when & then
-            BusinessException exception = assertThrows(BusinessException.class, () -> articleService.removeArticle(articleId, request));
-            assertEquals(CommonErrorCode.PERMISSION_ACCESS_DENIED, exception.getErrorCode());
+            BusinessException exception = assertThrows(BusinessException.class, () -> articleService.removeArticle(articleId, requesterId));
+            assertEquals(ApiErrorCode.PERMISSION_ACCESS_DENIED, exception.getErrorCode());
         }
     }
 }

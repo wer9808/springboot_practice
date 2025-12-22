@@ -1,17 +1,17 @@
 package com.example.article_crud.domain.article;
 
-import com.example.article_crud.domain.common.CommonErrorCode;
-import com.example.article_crud.domain.common.exception.BusinessException;
+import com.example.article_crud.common.exception.ApiErrorCode;
+import com.example.article_crud.common.exception.service.BusinessException;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
+@Table(name = "article")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Article {
@@ -37,6 +37,11 @@ public class Article {
     @UpdateTimestamp
     private Instant updatedAt;
 
+    @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ArticleStatus status;
+
+
     private Article(UUID authorId, String title, String content) {
         this.authorId = authorId;
         this.title = title;
@@ -45,13 +50,13 @@ public class Article {
 
     private static void validateTitle(String title) throws BusinessException {
         if (title == null || title.isBlank()) {
-            throw new BusinessException(CommonErrorCode.ARTICLE_NO_TITLE);
+            throw new BusinessException(ApiErrorCode.ARTICLE_NO_TITLE);
         }
     }
 
     private static void validateContent(String content) throws BusinessException {
         if (content == null || content.isBlank()) {
-            throw new BusinessException(CommonErrorCode.ARTICLE_NO_CONTENT);
+            throw new BusinessException(ApiErrorCode.ARTICLE_NO_CONTENT);
         }
     }
 
@@ -69,6 +74,10 @@ public class Article {
     public void changeContent(String content) throws BusinessException {
         validateContent(content);
         this.content = content;
+    }
+
+    public void changeStatus(ArticleStatus status) {
+        this.status = status;
     }
 
 }

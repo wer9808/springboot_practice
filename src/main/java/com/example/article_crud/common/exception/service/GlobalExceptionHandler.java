@@ -1,8 +1,7 @@
-package com.example.article_crud;
+package com.example.article_crud.common.exception.service;
 
-import com.example.article_crud.domain.common.dto.CommonErrorResponse;
-import com.example.article_crud.domain.common.CommonErrorCode;
-import com.example.article_crud.domain.common.exception.BusinessException;
+import com.example.article_crud.common.exception.ApiErrorCode;
+import com.example.article_crud.common.exception.dto.CommonErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,7 +15,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<CommonErrorResponse> handleUnexpectedException(Exception e) {
-        CommonErrorCode errorCode = CommonErrorCode.COMMON_INTERNAL_ERROR;
+        ApiErrorCode errorCode = ApiErrorCode.COMMON_INTERNAL_ERROR;
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(CommonErrorResponse.from(errorCode));
@@ -24,7 +23,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<CommonErrorResponse> handleBusinessException(BusinessException e) {
-        CommonErrorCode errorCode = e.getErrorCode();
+        ApiErrorCode errorCode = e.getErrorCode();
         return ResponseEntity
                 .status(errorCode.getHttpStatusCode())
                 .body(CommonErrorResponse.from(errorCode));

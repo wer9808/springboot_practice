@@ -1,8 +1,8 @@
-package com.example.article_crud.domain.common;
+package com.example.article_crud.common.exception;
 
 import lombok.Getter;
 
-public enum CommonErrorCode {
+public enum ApiErrorCode {
 
     // Common Error
     COMMON_INTERNAL_ERROR(500, "COMMON_INTERNAL_ERROR", "Internal Server Error"),
@@ -12,6 +12,9 @@ public enum CommonErrorCode {
     AUTH_REQUIRED(401, "AUTH_REQUIRED", "Authentication Required"),
     AUTH_TOKEN_EXPIRED(401, "AUTH_TOKEN_EXPIRED", "Token Expired"),
     AUTH_INVALID_TOKEN(401, "AUTH_INVALID_TOKEN", "Invalid Token"),
+    AUTH_INVALID_CREDENTIAL(401, "AUTH_INVALID_CREDENTIAL", "Invalid Credential"),
+    AUTH_EMAIL_DUPLICATED(409, "AUTH_EMAIL_DUPLICATED", "Email Duplicated"),
+
 
     // Permission Error
     PERMISSION_ACCESS_DENIED(403, "PERMISSION_ACCESS_DENIED", "Access Denied"),
@@ -19,7 +22,10 @@ public enum CommonErrorCode {
     // Article Error
     ARTICLE_NOT_FOUND(404, "ARTICLE_NOT_FOUND", "Article not found"),
     ARTICLE_NO_TITLE(400, "ARTICLE_NO_TITLE", "Title is required"),
-    ARTICLE_NO_CONTENT(400, "ARTICLE_NO_CONTENT", "Content is required")
+    ARTICLE_NO_CONTENT(400, "ARTICLE_NO_CONTENT", "Content is required"),
+
+    // User Error
+    USER_NOT_FOUND(404, "USER_NOT_FOUND", "User not found")
     ;
 
     @Getter
@@ -31,7 +37,7 @@ public enum CommonErrorCode {
     @Getter
     private final String message;
 
-    CommonErrorCode(int httpStatusCode, String code, String message) {
+    ApiErrorCode(int httpStatusCode, String code, String message) {
         this.httpStatusCode = httpStatusCode;
         this.code = code;
         this.message = message;
