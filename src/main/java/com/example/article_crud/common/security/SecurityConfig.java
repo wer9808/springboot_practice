@@ -1,6 +1,7 @@
 package com.example.article_crud.common.security;
 
 import com.example.article_crud.common.security.filter.JwtAuthFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -14,11 +15,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private AuthenticationConfiguration authenticationConfiguration;
-    private JwtAuthFilter jwtAuthFilter;
-    private CustomAuthenticationEntryPoint authenticationEntryPoint;
+    private final AuthenticationConfiguration authenticationConfiguration;
+    private final JwtAuthFilter jwtAuthFilter;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     @Bean
     public AuthenticationManager authenticationManager() throws Exception {
@@ -34,7 +36,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers(HttpMethod.GET, "/articles/**").permitAll()
-                                .requestMatchers("/auth").permitAll()
+                                .requestMatchers("/auth/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .addFilterBefore(this.jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

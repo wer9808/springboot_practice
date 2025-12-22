@@ -8,9 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController("/auth")
+@RestController
+@RequestMapping("/auth")
 public class AuthController {
 
     private final AuthService authService;
@@ -21,7 +23,6 @@ public class AuthController {
 
     @PostMapping("/sign-up")
     public ResponseEntity<Void> signUp(
-            @AuthenticationPrincipal CurrentUserPrincipal currentUserPrincipal,
             @RequestBody SignUpRequest request
     ) {
         this.authService.signUp(request);
@@ -30,7 +31,6 @@ public class AuthController {
 
     @PostMapping("/sign-in")
     public ResponseEntity<SignInResponse> signIn(
-            @AuthenticationPrincipal CurrentUserPrincipal currentUserPrincipal,
             @RequestBody SignInRequest request
     ) {
         SignInResponse response = this.authService.signIn(request);
