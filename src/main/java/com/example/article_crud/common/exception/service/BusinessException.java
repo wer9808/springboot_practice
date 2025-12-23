@@ -9,7 +9,7 @@ public class BusinessException extends RuntimeException {
     private final ApiErrorCode errorCode;
 
     public BusinessException(ApiErrorCode errorCode) {
-        super(errorCode.getMessage());
+        super(errorCode.getMessageKey());
         this.errorCode = errorCode;
     }
 

@@ -6,6 +6,7 @@ import com.example.article_crud.common.security.JwtUtil;
 import com.example.article_crud.domain.auth.dto.SignInRequest;
 import com.example.article_crud.domain.auth.dto.SignInResponse;
 import com.example.article_crud.domain.auth.dto.SignUpRequest;
+import com.example.article_crud.domain.auth.dto.SignUpResponse;
 import com.example.article_crud.domain.user.User;
 import com.example.article_crud.domain.user.UserRepository;
 import jakarta.transaction.Transactional;
@@ -34,7 +35,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void signUp(SignUpRequest request) {
+    public SignUpResponse signUp(SignUpRequest request) {
 
         LocalCredential localCredential = localCredentialRepository
                 .findByEmail(request.email())
@@ -46,12 +47,13 @@ public class AuthService {
 
         String passwordHash = passwordEncoder.encode(request.password());
 
-        User user = new User(request.username());
+        User user = User.of(request.username());
         this.userRepository.save(user);
 
-        localCredential = new LocalCredential(user.getId(), request.email(), passwordHash);
+        localCredential = LocalCredential.of(user.getId(), request.email(), passwordHash);
         this.localCredentialRepository.save(localCredential);
 
+        return new SignUpResponse(user.getId());
     }
 
     @Transactional

@@ -1,10 +1,17 @@
 package com.example.article_crud.domain.article;
 
-import com.example.article_crud.domain.article.dto.ArticleResponse;
-import com.example.article_crud.domain.article.dto.CreateArticleRequest;
-import com.example.article_crud.domain.article.dto.UpdateArticleRequest;
+import com.example.article_crud.domain.article.service.dto.response.ArticleListResponse;
+import com.example.article_crud.domain.article.service.dto.response.ArticleResponse;
+import com.example.article_crud.domain.article.service.ArticleService;
+import com.example.article_crud.domain.article.service.dto.request.CreateArticleRequest;
+import com.example.article_crud.domain.article.service.dto.request.UpdateArticleRequest;
 import com.example.article_crud.common.exception.ApiErrorCode;
 import com.example.article_crud.common.exception.service.BusinessException;
+import com.example.article_crud.domain.article.repository.ArticleRepository;
+import com.example.article_crud.domain.article.repository.dto.ArticleListRow;
+import com.example.article_crud.domain.article.service.dto.response.CreateArticleResponse;
+import com.example.article_crud.domain.article.service.dto.response.UpdateArticleResponse;
+import com.example.article_crud.domain.user.dto.CurrentUserDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -13,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -40,15 +48,15 @@ class ArticleServiceTest {
         void success() {
             // given
             UUID userId = UUID.randomUUID();
-            Article article1 = Article.of(userId, "title1", "content1");
-            Article article2 = Article.of(userId, "title2", "content2");
-            given(articleRepository.findAll()).willReturn(List.of(article1, article2));
+            ArticleListRow row1 = new ArticleListRow(1L, "title1", "content1", userId, Instant.now(), Instant.now());
+            ArticleListRow row2 = new ArticleListRow(2L, "title2", "content2", userId, Instant.now(), Instant.now());
+            given(articleRepository.findActiveArticleList()).willReturn(List.of(row1, row2));
 
             // when
-            List<ArticleResponse> responses = articleService.findAll();
+            ArticleListResponse response = articleService.findAllArticles();
 
             // then
-            assertEquals(2, responses.size());
+            assertEquals(2, response.articles().size());
         }
     }
 
@@ -61,8 +69,8 @@ class ArticleServiceTest {
             // given
             Long articleId = 1L;
             UUID userId = UUID.randomUUID();
-            Article article = Article.of(userId, "title", "content");
-            given(articleRepository.findById(articleId)).willReturn(Optional.of(article));
+            ArticleListRow row = new ArticleListRow(articleId, "title", "content", userId, Instant.now(), Instant.now());
+            given(articleRepository.findActiveArticleListRowById(articleId)).willReturn(Optional.of(row));
 
             // when
             ArticleResponse response = articleService.findArticle(articleId);
@@ -77,7 +85,7 @@ class ArticleServiceTest {
         void fail_whenArticleNotFound() {
             // given
             Long articleId = 1L;
-            given(articleRepository.findById(articleId)).willReturn(Optional.empty());
+            given(articleRepository.findActiveArticleListRowById(articleId)).willReturn(Optional.empty());
 
             // when & then
             BusinessException exception = assertThrows(BusinessException.class, () -> articleService.findArticle(articleId));
@@ -94,12 +102,13 @@ class ArticleServiceTest {
         void success() {
             // given
             UUID userId = UUID.randomUUID();
+            CurrentUserDto currentUserDto = new CurrentUserDto(userId, "email", "name");
             CreateArticleRequest request = new CreateArticleRequest("title", "content");
             Article article = Article.of(userId, request.title(), request.content());
             given(articleRepository.save(any(Article.class))).willReturn(article);
 
             // when
-            ArticleResponse response = articleService.createArticle(request, userId);
+            CreateArticleResponse response = articleService.createArticle(request, currentUserDto);
 
             // then
             assertNotNull(response);
@@ -117,12 +126,13 @@ class ArticleServiceTest {
             // given
             Long articleId = 1L;
             UUID userId = UUID.randomUUID();
+            CurrentUserDto currentUserDto = new CurrentUserDto(userId, "email", "name");
             UpdateArticleRequest request = new UpdateArticleRequest("new title", "new content");
             Article article = Article.of(userId, "old title", "old content");
             given(articleRepository.findById(articleId)).willReturn(Optional.of(article));
 
             // when
-            ArticleResponse response = articleService.updateArticle(articleId, request, userId);
+            UpdateArticleResponse response = articleService.updateArticle(articleId, request, currentUserDto);
 
             // then
             assertNotNull(response);
@@ -136,11 +146,12 @@ class ArticleServiceTest {
             // given
             Long articleId = 1L;
             UUID userId = UUID.randomUUID();
+            CurrentUserDto currentUserDto = new CurrentUserDto(userId, "email", "name");
             UpdateArticleRequest request = new UpdateArticleRequest("new title", "new content");
             given(articleRepository.findById(articleId)).willReturn(Optional.empty());
 
             // when & then
-            BusinessException exception = assertThrows(BusinessException.class, () -> articleService.updateArticle(articleId, request, userId));
+            BusinessException exception = assertThrows(BusinessException.class, () -> articleService.updateArticle(articleId, request, currentUserDto));
             assertEquals(ApiErrorCode.ARTICLE_NOT_FOUND, exception.getErrorCode());
         }
 
@@ -151,12 +162,13 @@ class ArticleServiceTest {
             Long articleId = 1L;
             UUID ownerId = UUID.randomUUID();
             UUID requesterId = UUID.randomUUID();
+            CurrentUserDto currentUserDto = new CurrentUserDto(requesterId, "email", "name");
             UpdateArticleRequest request = new UpdateArticleRequest("new title", "new content");
             Article article = Article.of(ownerId, "old title", "old content");
             given(articleRepository.findById(articleId)).willReturn(Optional.of(article));
 
             // when & then
-            BusinessException exception = assertThrows(BusinessException.class, () -> articleService.updateArticle(articleId, request, requesterId));
+            BusinessException exception = assertThrows(BusinessException.class, () -> articleService.updateArticle(articleId, request, currentUserDto));
             assertEquals(ApiErrorCode.PERMISSION_ACCESS_DENIED, exception.getErrorCode());
         }
     }
@@ -170,14 +182,15 @@ class ArticleServiceTest {
             // given
             Long articleId = 1L;
             UUID userId = UUID.randomUUID();
+            CurrentUserDto currentUserDto = new CurrentUserDto(userId, "email", "name");
             Article article = Article.of(userId, "title", "content");
             given(articleRepository.findById(articleId)).willReturn(Optional.of(article));
 
             // when
-            assertDoesNotThrow(() -> articleService.removeArticle(articleId, userId));
+            assertDoesNotThrow(() -> articleService.removeArticle(articleId, currentUserDto));
 
             // then
-            verify(articleRepository, times(1)).delete(article);
+            assertEquals(ArticleStatus.INACTIVE, article.getStatus());
         }
 
         @Test
@@ -186,10 +199,11 @@ class ArticleServiceTest {
             // given
             Long articleId = 1L;
             UUID userId = UUID.randomUUID();
+            CurrentUserDto currentUserDto = new CurrentUserDto(userId, "email", "name");
             given(articleRepository.findById(articleId)).willReturn(Optional.empty());
 
             // when & then
-            BusinessException exception = assertThrows(BusinessException.class, () -> articleService.removeArticle(articleId, userId));
+            BusinessException exception = assertThrows(BusinessException.class, () -> articleService.removeArticle(articleId, currentUserDto));
             assertEquals(ApiErrorCode.ARTICLE_NOT_FOUND, exception.getErrorCode());
         }
 
@@ -200,11 +214,12 @@ class ArticleServiceTest {
             Long articleId = 1L;
             UUID ownerId = UUID.randomUUID();
             UUID requesterId = UUID.randomUUID();
+            CurrentUserDto currentUserDto = new CurrentUserDto(requesterId, "email", "name");
             Article article = Article.of(ownerId, "title", "content");
             given(articleRepository.findById(articleId)).willReturn(Optional.of(article));
 
             // when & then
-            BusinessException exception = assertThrows(BusinessException.class, () -> articleService.removeArticle(articleId, requesterId));
+            BusinessException exception = assertThrows(BusinessException.class, () -> articleService.removeArticle(articleId, currentUserDto));
             assertEquals(ApiErrorCode.PERMISSION_ACCESS_DENIED, exception.getErrorCode());
         }
     }

@@ -1,6 +1,4 @@
-package com.example.article_crud.domain.article.dto;
-
-import java.util.UUID;
+package com.example.article_crud.domain.article.service.dto.request;
 
 public record UpdateArticleRequest(
         String title,

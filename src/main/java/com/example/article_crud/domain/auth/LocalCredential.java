@@ -19,7 +19,7 @@ public class LocalCredential {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "userId", nullable = false)
+    @Column(name = "user_id", nullable = false)
     private UUID userId;
 
     @Column(name = "email", nullable = false)
@@ -39,11 +39,15 @@ public class LocalCredential {
     @CreationTimestamp
     private Instant updatedAt;
 
-    public LocalCredential(UUID userId, String email, String passwordHash) {
+    private LocalCredential(UUID userId, String email, String passwordHash) {
         this.userId = userId;
         this.email = email;
         this.passwordHash = passwordHash;
         this.isActive = true;
+    }
+
+    public static LocalCredential of(UUID userId, String email, String passwordHash) {
+        return new LocalCredential(userId, email, passwordHash);
     }
 
 }

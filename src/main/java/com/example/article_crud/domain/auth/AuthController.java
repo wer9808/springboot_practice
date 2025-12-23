@@ -4,6 +4,8 @@ import com.example.article_crud.common.security.dto.CurrentUserPrincipal;
 import com.example.article_crud.domain.auth.dto.SignInRequest;
 import com.example.article_crud.domain.auth.dto.SignInResponse;
 import com.example.article_crud.domain.auth.dto.SignUpRequest;
+import com.example.article_crud.domain.auth.dto.SignUpResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,11 +24,13 @@ public class AuthController {
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<Void> signUp(
+    public ResponseEntity<SignUpResponse> signUp(
             @RequestBody SignUpRequest request
     ) {
-        this.authService.signUp(request);
-        return ResponseEntity.ok().build();
+        SignUpResponse response = this.authService.signUp(request);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
     @PostMapping("/sign-in")

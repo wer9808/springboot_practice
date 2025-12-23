@@ -1,9 +1,13 @@
 package com.example.article_crud.domain.article;
 
 import com.example.article_crud.common.security.dto.CurrentUserPrincipal;
-import com.example.article_crud.domain.article.dto.ArticleResponse;
-import com.example.article_crud.domain.article.dto.CreateArticleRequest;
-import com.example.article_crud.domain.article.dto.UpdateArticleRequest;
+import com.example.article_crud.domain.article.service.dto.response.ArticleListResponse;
+import com.example.article_crud.domain.article.service.dto.response.ArticleResponse;
+import com.example.article_crud.domain.article.service.ArticleService;
+import com.example.article_crud.domain.article.service.dto.request.CreateArticleRequest;
+import com.example.article_crud.domain.article.service.dto.request.UpdateArticleRequest;
+import com.example.article_crud.domain.article.service.dto.response.CreateArticleResponse;
+import com.example.article_crud.domain.article.service.dto.response.UpdateArticleResponse;
 import com.example.article_crud.domain.user.dto.CurrentUserDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +28,29 @@ public class ArticleController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ArticleResponse>> getArticles(
+    public ResponseEntity<ArticleListResponse> getArticles(
+            @AuthenticationPrincipal CurrentUserPrincipal currentUserPrincipal,
+            @RequestParam(required = false) UUID userId
+    ) {
+        ArticleListResponse response;
+        if (userId != null) {
+            response = this.articleService.findUserArticles(userId);
+        }
+        else {
+            response = this.articleService.findAllArticles();
+        }
+        return ResponseEntity
+                .ok(response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<List<ArticleResponse>> getMyArticles(
             @AuthenticationPrincipal CurrentUserPrincipal currentUserPrincipal
     ) {
-        List<ArticleResponse> articleResponses = this.articleService.findAll();
+        CurrentUserDto currentUserDto = CurrentUserDto.from(currentUserPrincipal);
+        List<ArticleResponse> responses = this.articleService.findMyArticles(currentUserDto);
         return ResponseEntity
-                .ok(articleResponses);
+                .ok(responses);
     }
 
     @GetMapping("/{articleId}")
@@ -37,37 +58,38 @@ public class ArticleController {
             @AuthenticationPrincipal CurrentUserPrincipal currentUserPrincipal,
             @PathVariable Long articleId
     ) {
-        ArticleResponse articleResponse = this.articleService.findArticle(articleId);
+        ArticleResponse response = this.articleService.findArticle(articleId);
         return ResponseEntity
-                .ok(articleResponse);
+                .ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<ArticleResponse> postArticle(
+    public ResponseEntity<CreateArticleResponse> postArticle(
             @AuthenticationPrincipal CurrentUserPrincipal currentUserPrincipal,
             @RequestBody CreateArticleRequest request
     ) {
         CurrentUserDto currentUserDto = CurrentUserDto.from(currentUserPrincipal);
 
-        ArticleResponse articleResponse = this.articleService
+        CreateArticleResponse response = this.articleService
                 .createArticle(request, currentUserDto);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(articleResponse);
+                .body(response);
     }
 
     @PutMapping("/{articleId}")
-    public ResponseEntity<ArticleResponse> putArticle(
+    public ResponseEntity<UpdateArticleResponse> putArticle(
             @AuthenticationPrincipal CurrentUserPrincipal currentUserPrincipal,
             @PathVariable Long articleId,
             @RequestBody UpdateArticleRequest request
     ) {
         CurrentUserDto currentUserDto = CurrentUserDto.from(currentUserPrincipal);
 
-        ArticleResponse articleResponse = this.articleService
+        UpdateArticleResponse response = this.articleService
                 .updateArticle(articleId, request, currentUserDto);
         return ResponseEntity
-                .ok(articleResponse);
+                .ok()
+                .body(response);
     }
 
     @DeleteMapping("/{articleId}")
@@ -78,7 +100,7 @@ public class ArticleController {
         CurrentUserDto currentUserDto = CurrentUserDto.from(currentUserPrincipal);
         this.articleService.removeArticle(articleId, currentUserDto);
         return ResponseEntity
-                .noContent()
+                .status(HttpStatus.NO_CONTENT)
                 .build();
     }
 }

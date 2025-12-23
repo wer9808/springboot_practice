@@ -11,7 +11,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "article")
+@Table(name = "articles")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Article {
@@ -46,6 +46,7 @@ public class Article {
         this.authorId = authorId;
         this.title = title;
         this.content = content;
+        this.status = ArticleStatus.ACTIVE;
     }
 
     private static void validateTitle(String title) throws BusinessException {

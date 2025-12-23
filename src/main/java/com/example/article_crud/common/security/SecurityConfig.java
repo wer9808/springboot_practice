@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -19,6 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
+    private final CorsConfigurationSource corsConfigurationSource;
     private final JwtAuthFilter jwtAuthFilter;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
@@ -29,20 +31,26 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(sessionManagement ->
-                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .authorizeHttpRequests(auth ->
-                        auth.requestMatchers(HttpMethod.GET, "/articles/**").permitAll()
-                                .requestMatchers("/auth/**").permitAll()
-                                .anyRequest().authenticated()
-                )
-                .addFilterBefore(this.jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(this.authenticationEntryPoint)
-                );
+        http.csrf(csrf -> csrf.disable());
+        http.cors(cors ->
+                cors.configurationSource(this.corsConfigurationSource)
+        );
+        http.sessionManagement(sessionManagement ->
+                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        );
+        http.authorizeHttpRequests(auth ->
+                auth
+                        .requestMatchers(HttpMethod.GET, "/articles/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/users/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/articles/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/users/me").authenticated()
+                        .anyRequest().authenticated()
+        );
+        http.addFilterBefore(this.jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        http.exceptionHandling(exception ->
+                exception.authenticationEntryPoint(this.authenticationEntryPoint)
+        );
 
         return http.build();
     }

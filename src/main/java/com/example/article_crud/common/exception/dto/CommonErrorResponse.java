@@ -6,10 +6,6 @@ public record CommonErrorResponse(
         String code,
         String message
 ) {
-    public static CommonErrorResponse from(ApiErrorCode errorCode) {
-        return new CommonErrorResponse(errorCode.getCode(), errorCode.getMessage());
-    }
-
     public static CommonErrorResponse from(ApiErrorCode errorCode, String message) {
         return new CommonErrorResponse(errorCode.getCode(), message);
     }

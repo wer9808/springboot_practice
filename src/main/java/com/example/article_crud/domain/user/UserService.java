@@ -4,6 +4,7 @@ import com.example.article_crud.common.exception.ApiErrorCode;
 import com.example.article_crud.common.exception.service.BusinessException;
 import com.example.article_crud.domain.user.dto.CurrentUserDto;
 import com.example.article_crud.domain.user.dto.UserResponse;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -23,6 +24,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     public UserResponse findUser(UUID userId, CurrentUserDto currentUserDto) throws BusinessException {
         checkUserReadPermission(userId, currentUserDto);
 
@@ -32,6 +34,7 @@ public class UserService {
         return UserResponse.from(user);
     }
 
+    @Transactional
     public UserResponse findCurrentUser(CurrentUserDto currentUserDto) throws BusinessException {
         User user = this.userRepository.findById(currentUserDto.id())
                 .orElseThrow(() -> new BusinessException(ApiErrorCode.USER_NOT_FOUND));

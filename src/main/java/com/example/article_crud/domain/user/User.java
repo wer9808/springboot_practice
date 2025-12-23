@@ -11,7 +11,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
@@ -23,16 +23,20 @@ public class User {
     @Column(name = "username", nullable = false)
     private String username;
 
-    @Column(name = "createdAt", nullable = false)
+    @Column(name = "created_at", nullable = false)
     @CreationTimestamp
     private Instant createdAt;
 
-    @Column(name = "updatedAt", nullable = false)
+    @Column(name = "updated_at", nullable = false)
     @UpdateTimestamp
     private Instant updatedAt;
 
-    public User(String username) {
+    private User(String username) {
         this.username = username;
+    }
+
+    public static User of(String username) {
+        return new User(username);
     }
 
 }
