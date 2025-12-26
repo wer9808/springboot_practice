@@ -1,1 +1,1 @@
-rootProject.name = "article_crud"
+rootProject.name = "post_crud"
